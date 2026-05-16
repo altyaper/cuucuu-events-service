@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+*.egg-info/
+models/beto-base/
+models/beto-events/checkpoint-*/
+models/beto-events/training_args.bin
+.claude/

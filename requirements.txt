@@ -8,8 +8,9 @@ click==8.1.8
 dateparser==1.2.1
 unidecode==1.4.0
 python-dotenv==1.1.0
-transformers==4.52.3
-torch==2.7.0
-scikit-learn==1.7.0
+transformers>=4.40.0
+scikit-learn>=1.4.0
+accelerate>=1.1.0
+safetensors>=0.4.0
 pytest==8.4.2
 httpx==0.28.1

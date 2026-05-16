@@ -1,4 +1,15 @@
 services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      EVENT_DATABASE_URL: ${EVENT_DATABASE_URL:-postgresql://postgres:postgres@db:5432/cuucuu_dev}
+      EVENT_THRESHOLD: "0.65"
+      EVENT_CLASSIFIER_TYPE: transformer
+      EVENT_MODEL_PATH: ./models/beto-events
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     environment:
@@ -9,17 +20,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  app:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      EVENT_DATABASE_URL: postgresql://postgres:postgres@db:5432/cuucuu_dev
-      EVENT_THRESHOLD: "0.65"
-      EVENT_CLASSIFIER_TYPE: rule_based
-    depends_on:
-      - db
+    restart: unless-stopped
 
 volumes:
   pgdata:

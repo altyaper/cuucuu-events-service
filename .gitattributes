@@ -1,1 +1,2 @@
+models/beto-events/model.safetensors filter=lfs diff=lfs merge=lfs -text
 models/beto-events/model.safetensors !text !filter !merge !diff

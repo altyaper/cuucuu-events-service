@@ -13,7 +13,7 @@ from transformers import (
 from app.db import SessionLocal
 from app.models import Article, TrainingLabel
 
-MODEL_NAME = "dccuchile/bert-base-spanish-wwm-cased"
+MODEL_NAME = "./models/beto-base"
 LABEL2ID = {"NO_EVENTO": 0, "EVENTO": 1}
 ID2LABEL = {0: "NO_EVENTO", 1: "EVENTO"}
 
