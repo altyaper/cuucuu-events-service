@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Labeling - cuucuu</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+        .stat-card .number { font-size: 1.8em; font-weight: bold; color: #4fc3f7; }
+        .stat-card .label { font-size: 0.8em; color: #aaa; margin-top: 4px; }
+
+        .progress-bar {
+            background: #16213e;
+            border-radius: 20px;
+            height: 8px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4fc3f7, #00e676);
+            transition: width 0.3s;
+        }
+
+        .filters {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .filters label { font-size: 0.85em; color: #aaa; }
+        .filters input[type="range"] { flex: 1; }
+        .filters .range-values { font-size: 0.85em; color: #4fc3f7; min-width: 80px; }
+
+        .legend {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 0.75em;
+        }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .article-card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .article-card .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+        .article-card .confidence {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .confidence-high { background: #1b5e20; color: #a5d6a7; }
+        .confidence-mid { background: #e65100; color: #ffcc80; }
+        .confidence-low { background: #b71c1c; color: #ef9a9a; }
+
+        .article-card h2 {
+            font-size: 1.2em;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        .article-card .content {
+            font-size: 0.95em;
+            line-height: 1.7;
+            color: #ccc;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+
+        .hl-invite { background: #1b5e20; color: #a5d6a7; padding: 1px 3px; border-radius: 3px; }
+        .hl-future { background: #004d40; color: #80cbc4; padding: 1px 3px; border-radius: 3px; }
+        .hl-date   { background: #0d47a1; color: #90caf9; padding: 1px 3px; border-radius: 3px; }
+        .hl-time   { background: #1a237e; color: #9fa8da; padding: 1px 3px; border-radius: 3px; }
+        .hl-venue  { background: #4a148c; color: #ce93d8; padding: 1px 3px; border-radius: 3px; }
+        .hl-type   { background: #e65100; color: #ffcc80; padding: 1px 3px; border-radius: 3px; }
+        .hl-admit  { background: #006064; color: #80deea; padding: 1px 3px; border-radius: 3px; }
+        .hl-crime  { background: #b71c1c; color: #ef9a9a; padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+        .hl-past   { background: #880e4f; color: #f48fb1; padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+
+        .detection-info {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 0.85em;
+        }
+        .detection-info .tag {
+            display: inline-block;
+            background: #1a1a2e;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin: 3px;
+            font-size: 0.9em;
+        }
+        .detection-info .auto-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-event { background: #2e7d32; color: #fff; }
+        .btn-not-event { background: #c62828; color: #fff; }
+        .btn-skip { background: #424242; color: #bbb; padding: 14px 24px; font-size: 0.9em; }
+
+        .shortcuts {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .shortcuts kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .bulk-panel {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #2a4a7f;
+        }
+        .bulk-panel h3 { font-size: 0.95em; margin-bottom: 12px; color: #4fc3f7; }
+        .bulk-panel .preview {
+            font-size: 0.85em; color: #aaa;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .bulk-panel .preview strong { color: #eee; }
+        .bulk-panel .thresholds {
+            display: flex; gap: 16px; align-items: center;
+            margin-bottom: 12px; font-size: 0.85em;
+        }
+        .bulk-panel .thresholds label { color: #aaa; }
+        .bulk-panel .thresholds input {
+            width: 60px; background: #1a1a2e; border: 1px solid #333;
+            color: #eee; padding: 4px 8px; border-radius: 4px; text-align: center;
+        }
+        .btn-bulk {
+            background: #1565c0; color: #fff; border: none;
+            padding: 10px 20px; border-radius: 6px; font-size: 0.9em;
+            font-weight: bold; cursor: pointer;
+        }
+        .btn-bulk:hover { background: #1976d2; }
+        .btn-bulk:disabled { opacity: 0.5; cursor: not-allowed; }
+        .bulk-result {
+            margin-top: 10px; font-size: 0.85em;
+            color: #a5d6a7; display: none;
+        }
+
+        .done-message {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.3em;
+            color: #4fc3f7;
+        }
+
+        .loading { text-align: center; padding: 40px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stats" id="stats">
+            <div class="stat-card"><div class="number" id="stat-labeled">-</div><div class="label">Labeled</div></div>
+            <div class="stat-card"><div class="number" id="stat-events">-</div><div class="label">Events</div></div>
+            <div class="stat-card"><div class="number" id="stat-not-events">-</div><div class="label">Not Events</div></div>
+            <div class="stat-card"><div class="number" id="stat-remaining">-</div><div class="label">Remaining</div></div>
+        </div>
+
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#1b5e20"></span> Invitación</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#004d40"></span> Evento futuro</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#0d47a1"></span> Fecha</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#1a237e"></span> Hora</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#4a148c"></span> Lugar</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e65100"></span> Tipo evento</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#006064"></span> Admisión</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#b71c1c"></span> Crimen (-)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#880e4f"></span> Pasado (-)</div>
+        </div>
+
+        <div class="filters">
+            <label>Confidence:</label>
+            <input type="range" id="min-conf" min="0" max="100" value="0" step="5">
+            <span>-</span>
+            <input type="range" id="max-conf" min="0" max="100" value="100" step="5">
+            <span class="range-values" id="range-display">0% - 100%</span>
+        </div>
+
+        <div class="bulk-panel" id="bulk-panel">
+            <h3>Bulk Auto-Label</h3>
+            <div class="thresholds">
+                <label>Auto EVENT if confidence &ge;</label>
+                <input type="number" id="bulk-high" value="0.9" min="0" max="1" step="0.05">
+                <label>Auto NOT EVENT if &le;</label>
+                <input type="number" id="bulk-low" value="0.15" min="0" max="1" step="0.05">
+                <button class="btn-bulk" onclick="previewBulk()" id="btn-preview">Preview</button>
+            </div>
+            <div class="preview" id="bulk-preview"></div>
+            <button class="btn-bulk" onclick="executeBulk()" id="btn-execute" style="display:none">Apply Auto-Labels</button>
+            <div class="bulk-result" id="bulk-result"></div>
+        </div>
+
+        <div id="card-area">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentArticle = null;
+        let isSubmitting = false;
+
+        const HIGHLIGHTS = [
+            { cls: 'hl-crime', patterns: [
+                /asesinato/gi, /detenido/gi, /homicidio/gi, /accidente/gi, /choque/gi,
+                /muerto/gi, /fallecido/gi, /víctima/gi, /balacera/gi, /sicario/gi,
+                /narcotráfico/gi, /decomiso/gi, /robo\b/gi, /asalto/gi, /crimen/gi,
+                /violencia/gi, /feminicidio/gi, /desaparecido/gi, /secuestro/gi, /extorsión/gi,
+            ]},
+            { cls: 'hl-past', patterns: [
+                /se llevó a cabo/gi, /se realizó/gi, /tuvo lugar/gi, /se celebró/gi,
+                /se efectuó/gi, /se presentó/gi, /el pasado (?:lunes|martes|miércoles|jueves|viernes|sábado|domingo)/gi,
+            ]},
+            { cls: 'hl-invite', patterns: [
+                /invita\s+a\s+la\s+comunidad/gi, /invita\s+a\s+asistir/gi, /invita\s+al\s+público/gi,
+                /invita\s+a\s+participar/gi, /te\s+invitamos?/gi, /están\s+invitados/gi, /convoca\s+a/gi,
+            ]},
+            { cls: 'hl-future', patterns: [
+                /se llevará a cabo/gi, /se realizará/gi, /tendrá lugar/gi, /se celebrará/gi,
+                /se efectuará/gi, /dará inicio/gi, /se presentará/gi,
+            ]},
+            { cls: 'hl-date', patterns: [
+                /(?:este|próximo)\s+(?:lunes|martes|miércoles|jueves|viernes|sábado|domingo)/gi,
+                /del\s+\d{1,2}\s+(?:al|y)\s+\d{1,2}\s+de\s+\w+/gi,
+                /(?:lunes|martes|miércoles|jueves|viernes|sábado|domingo)\s+\d{1,2}\s+de\s+\w+/gi,
+                /\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/gi,
+            ]},
+            { cls: 'hl-time', patterns: [
+                /a\s+partir\s+de\s+las/gi,
+                /de\s+las?\s+\d{1,2}[:\.]?\d{0,2}\s*(?:a|a\s+las)\s+\d{1,2}[:\.]?\d{0,2}/gi,
+                /\d{1,2}:\d{2}\s*(?:hrs|horas|am|pm|de\s+la\s+(?:mañana|tarde|noche))/gi,
+                /desde\s+las\s+\d{1,2}/gi,
+            ]},
+            { cls: 'hl-venue', patterns: [
+                /centro\s+de\s+convenciones/gi, /teatro\b/gi, /museo\b/gi, /plaza\b/gi,
+                /parque\b/gi, /auditorio\b/gi, /estadio\b/gi, /salón\b/gi, /foro\b/gi,
+                /galería\b/gi, /explanada\b/gi, /arena\b/gi, /recinto\b/gi,
+            ]},
+            { cls: 'hl-type', patterns: [
+                /festival\b/gi, /expo(?:sición)?\b/gi, /feria\b/gi, /concierto\b/gi,
+                /talleres?\b/gi, /conferencia\b/gi, /presentación\b/gi, /función\b/gi,
+                /convocatoria\b/gi, /carrera\b/gi, /desfile\b/gi, /inauguración\b/gi,
+                /torneo\b/gi, /maratón\b/gi, /bazar\b/gi,
+            ]},
+            { cls: 'hl-admit', patterns: [
+                /entrada\s+(?:libre|gratuita|general)/gi, /boletos?\b/gi, /costo\s+de/gi,
+                /sin\s+costo/gi, /acceso\s+(?:libre|gratuito)/gi, /registro\s+(?:gratuito|libre)/gi,
+            ]},
+        ];
+
+        function highlightText(text) {
+            let safe = escapeHtml(text);
+
+            for (const group of HIGHLIGHTS) {
+                for (const pattern of group.patterns) {
+                    safe = safe.replace(pattern, (match) =>
+                        `<span class="${group.cls}">${match}</span>`
+                    );
+                }
+            }
+            return safe;
+        }
+
+        async function fetchStats() {
+            const res = await fetch('/label/stats');
+            const data = await res.json();
+            document.getElementById('stat-labeled').textContent = data.total_labeled;
+            document.getElementById('stat-events').textContent = data.labeled_events;
+            document.getElementById('stat-not-events').textContent = data.labeled_not_events;
+            document.getElementById('stat-remaining').textContent = data.remaining;
+
+            const total = data.total_detections || 1;
+            const pct = (data.total_labeled / total) * 100;
+            document.getElementById('progress-fill').style.width = pct + '%';
+        }
+
+        async function fetchNext() {
+            const minConf = parseInt(document.getElementById('min-conf').value) / 100;
+            const maxConf = parseInt(document.getElementById('max-conf').value) / 100;
+
+            const res = await fetch(`/label/next?min_confidence=${minConf}&max_confidence=${maxConf}`);
+            const data = await res.json();
+
+            if (data.done) {
+                document.getElementById('card-area').innerHTML = `
+                    <div class="done-message">
+                        All articles in this range have been labeled.<br>
+                        Adjust the confidence filter or process more articles.
+                    </div>`;
+                currentArticle = null;
+                return;
+            }
+
+            currentArticle = data;
+            renderCard(data);
+        }
+
+        function renderCard(data) {
+            const { article, detection } = data;
+            const conf = detection.confidence;
+            let confClass = 'confidence-low';
+            if (conf >= 0.7) confClass = 'confidence-high';
+            else if (conf >= 0.4) confClass = 'confidence-mid';
+
+            const autoLabel = detection.is_event ? 'AUTO: EVENTO' : 'AUTO: NO EVENTO';
+
+            let detTags = '';
+            if (detection.event_type) detTags += `<span class="tag">Tipo: ${detection.event_type}</span>`;
+            if (detection.city) detTags += `<span class="tag">Ciudad: ${detection.city}</span>`;
+            if (detection.venue) detTags += `<span class="tag">Lugar: ${detection.venue}</span>`;
+            if (detection.start_date) detTags += `<span class="tag">Fecha: ${detection.start_date}</span>`;
+            if (detection.start_time) detTags += `<span class="tag">Hora: ${detection.start_time}</span>`;
+            if (detection.admission) detTags += `<span class="tag">Admisión: ${detection.admission}</span>`;
+            if (detection.organizer) detTags += `<span class="tag">Org: ${detection.organizer}</span>`;
+            if (detection.event_name) detTags += `<span class="tag">Nombre: ${detection.event_name}</span>`;
+
+            const highlightedTitle = highlightText(article.title || '(sin título)');
+            const highlightedContent = highlightText(article.content || '');
+
+            document.getElementById('card-area').innerHTML = `
+                <div class="article-card">
+                    <div class="meta">
+                        <span>#${article.id} &middot; ${escapeHtml(article.source || '')}</span>
+                        <span class="confidence ${confClass}">${(conf * 100).toFixed(1)}%</span>
+                    </div>
+                    <h2>${highlightedTitle}</h2>
+                    <div class="content">${highlightedContent}</div>
+                    <div class="detection-info">
+                        <div class="auto-label">${autoLabel}</div>
+                        ${detTags || '<span class="tag">Sin campos extraídos</span>'}
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-not-event" onclick="submitLabel(false)" id="btn-no">No Evento</button>
+                    <button class="btn btn-skip" onclick="skipArticle()" id="btn-skip">Skip</button>
+                    <button class="btn btn-event" onclick="submitLabel(true)" id="btn-yes">Evento</button>
+                </div>
+                <div class="shortcuts">
+                    <kbd>E</kbd> Evento &nbsp; <kbd>N</kbd> No Evento &nbsp; <kbd>S</kbd> Skip
+                </div>`;
+        }
+
+        async function submitLabel(isEvent) {
+            if (!currentArticle || isSubmitting) return;
+            isSubmitting = true;
+            setButtonsDisabled(true);
+
+            await fetch('/label/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    article_id: currentArticle.article.id,
+                    is_event: isEvent,
+                }),
+            });
+
+            isSubmitting = false;
+            await fetchStats();
+            await fetchNext();
+        }
+
+        async function skipArticle() {
+            if (!currentArticle || isSubmitting) return;
+            isSubmitting = true;
+            setButtonsDisabled(true);
+
+            await fetch(`/label/skip/${currentArticle.article.id}`, { method: 'POST' });
+
+            isSubmitting = false;
+            await fetchStats();
+            await fetchNext();
+        }
+
+        function setButtonsDisabled(disabled) {
+            const btns = document.querySelectorAll('.btn');
+            btns.forEach(b => b.disabled = disabled);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            if (e.key === 'e' || e.key === 'E') submitLabel(true);
+            if (e.key === 'n' || e.key === 'N') submitLabel(false);
+            if (e.key === 's' || e.key === 'S') skipArticle();
+        });
+
+        document.getElementById('min-conf').addEventListener('input', updateRange);
+        document.getElementById('max-conf').addEventListener('input', updateRange);
+
+        function updateRange() {
+            const min = document.getElementById('min-conf').value;
+            const max = document.getElementById('max-conf').value;
+            document.getElementById('range-display').textContent = `${min}% - ${max}%`;
+        }
+
+        document.getElementById('min-conf').addEventListener('change', fetchNext);
+        document.getElementById('max-conf').addEventListener('change', fetchNext);
+
+        async function previewBulk() {
+            const high = document.getElementById('bulk-high').value;
+            const low = document.getElementById('bulk-low').value;
+
+            const res = await fetch(`/label/preview-bulk?high_threshold=${high}&low_threshold=${low}`);
+            const data = await res.json();
+
+            document.getElementById('bulk-preview').innerHTML =
+                `<strong>${data.will_auto_event}</strong> articles will be auto-labeled as <strong style="color:#a5d6a7">EVENTO</strong> (confidence &ge; ${high})<br>` +
+                `<strong>${data.will_auto_not_event}</strong> articles will be auto-labeled as <strong style="color:#ef9a9a">NO EVENTO</strong> (confidence &le; ${low})<br>` +
+                `<strong>${data.remaining_manual}</strong> articles will remain for manual review`;
+
+            document.getElementById('btn-execute').style.display = 'inline-block';
+        }
+
+        async function executeBulk() {
+            const high = document.getElementById('bulk-high').value;
+            const low = document.getElementById('bulk-low').value;
+            const btn = document.getElementById('btn-execute');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const res = await fetch('/label/bulk-auto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ high_threshold: parseFloat(high), low_threshold: parseFloat(low) }),
+            });
+            const data = await res.json();
+
+            const resultEl = document.getElementById('bulk-result');
+            resultEl.style.display = 'block';
+            resultEl.textContent = `Done! Auto-labeled ${data.auto_labeled_events} as EVENT, ${data.auto_labeled_not_events} as NOT EVENT (${data.total_auto_labeled} total)`;
+
+            btn.style.display = 'none';
+            document.getElementById('bulk-preview').innerHTML = '';
+
+            await fetchStats();
+            await fetchNext();
+        }
+
+        fetchStats();
+        fetchNext();
+    </script>
+</body>
+</html>
