@@ -1,26 +1,21 @@
 services:
   app:
     build: .
-    ports:
-      - "8000:8000"
-    environment:
-      EVENT_DATABASE_URL: ${EVENT_DATABASE_URL:-postgresql://postgres:postgres@db:5432/cuucuu_dev}
-      EVENT_THRESHOLD: "0.65"
-      EVENT_CLASSIFIER_TYPE: transformer
-      EVENT_MODEL_PATH: ./models/beto-events
     restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: cuucuu_dev
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    container_name: events-service
     ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+      - "8001:8001"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - shared
 
-volumes:
-  pgdata:
+networks:
+  shared:
+    name: cuucuu-network
+    external: true

@@ -5,7 +5,7 @@ from app.schemas import ArticleInput, EventDetectionResult
 
 
 def process_article(article: ArticleInput) -> EventDetectionResult:
-    full_text = f"{article.title} {article.content}"
+    full_text = f"{article.title or ''} {article.content or ''}"
     normalized = normalize(full_text)
 
     classifier = get_classifier()
@@ -15,7 +15,7 @@ def process_article(article: ArticleInput) -> EventDetectionResult:
 
     if not classification.is_event:
         return EventDetectionResult(
-            article_id=article.id,
+            article_id=article.resolved_id,
             is_event=False,
             confidence=round(classification.confidence, 4),
             warnings=warnings,
@@ -34,7 +34,7 @@ def process_article(article: ArticleInput) -> EventDetectionResult:
         warnings.append("No se pudo extraer nombre del evento")
 
     return EventDetectionResult(
-        article_id=article.id,
+        article_id=article.resolved_id,
         is_event=True,
         confidence=round(classification.confidence, 4),
         event_name=fields["event_name"],

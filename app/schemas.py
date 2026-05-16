@@ -5,10 +5,15 @@ from pydantic import BaseModel
 
 class ArticleInput(BaseModel):
     id: int | None = None
-    title: str = ""
-    content: str = ""
+    article_id: int | None = None
+    title: str | None = ""
+    content: str | None = ""
     published_at: datetime | None = None
     source: str | None = None
+
+    @property
+    def resolved_id(self) -> int | None:
+        return self.article_id or self.id
 
 
 class EventDetectionResult(BaseModel):
