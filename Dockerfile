@@ -8,7 +8,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
-COPY models/beto-events/config.json models/beto-events/model.safetensors models/beto-events/tokenizer_config.json models/beto-events/tokenizer.json models/beto-events/
+
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('AltYaper/beto-events', local_dir='models/beto-events')"
 
 EXPOSE 8001
 
