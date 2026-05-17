@@ -14,10 +14,10 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Run the API server
-uvicorn app.api:app --reload --port 8000
+uvicorn app.api:app --reload --port 8001
 
 # Test with curl
-curl -X POST http://localhost:8000/detect \
+curl -X POST http://localhost:8001/detect \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Invitan a Expo Viaja Juárez 2026",
