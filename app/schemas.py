@@ -21,8 +21,10 @@ class EventDetectionResult(BaseModel):
     is_event: bool
     confidence: float
     event_name: str | None = None
+    description: str | None = None
     city: str | None = None
     venue: str | None = None
+    dates: list[date] = []
     start_date: date | None = None
     end_date: date | None = None
     start_time: time | None = None
