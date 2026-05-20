@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from app.config import settings
@@ -41,7 +43,14 @@ class TransformerClassifier(BaseClassifier):
         return ClassificationResult(is_event=is_event, confidence=confidence)
 
 
+_classifier_instance: BaseClassifier | None = None
+
+
 def get_classifier() -> BaseClassifier:
-    if settings.classifier_type == "transformer":
-        return TransformerClassifier()
-    return RuleBasedClassifier()
+    global _classifier_instance
+    if _classifier_instance is None:
+        if settings.classifier_type == "transformer":
+            _classifier_instance = TransformerClassifier()
+        else:
+            _classifier_instance = RuleBasedClassifier()
+    return _classifier_instance
