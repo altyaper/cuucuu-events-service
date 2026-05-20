@@ -6,8 +6,8 @@ Detects local events in Spanish news articles using rule-based NLP. Exposes a Fa
 
 ```bash
 # Install dependencies
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 
 # Copy env file
