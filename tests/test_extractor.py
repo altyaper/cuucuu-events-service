@@ -1,5 +1,6 @@
 from datetime import date, datetime, time
 
+from app.cleaning import clean_text
 from app.extractor import (
     extract_admission,
     extract_all,
@@ -11,12 +12,11 @@ from app.extractor import (
     extract_times,
     extract_venue,
 )
-from app.normalizer import normalize
 from tests.conftest import CONCERT_ARTICLE, EVENT_WITH_DATE_RANGE, SAMPLE_EVENT_ARTICLE
 
 REF_DATE = datetime(2026, 5, 15)
 
-SAMPLE_TEXT = normalize(f"{SAMPLE_EVENT_ARTICLE.title} {SAMPLE_EVENT_ARTICLE.content}")
+SAMPLE_TEXT = clean_text(f"{SAMPLE_EVENT_ARTICLE.title} {SAMPLE_EVENT_ARTICLE.body}")
 
 
 def test_extract_city_from_lead():
@@ -38,7 +38,7 @@ def test_extract_event_type_expo():
 
 
 def test_extract_event_type_concierto():
-    text = normalize(f"{CONCERT_ARTICLE.title} {CONCERT_ARTICLE.content}")
+    text = clean_text(f"{CONCERT_ARTICLE.title} {CONCERT_ARTICLE.body}")
     assert extract_event_type(text) == "concierto"
 
 
@@ -72,7 +72,7 @@ def test_extract_dates_range_sabado_domingo():
 
 
 def test_extract_dates_del_al():
-    text = normalize(f"{EVENT_WITH_DATE_RANGE.title} {EVENT_WITH_DATE_RANGE.content}")
+    text = clean_text(f"{EVENT_WITH_DATE_RANGE.title} {EVENT_WITH_DATE_RANGE.body}")
     start, end = extract_dates(text, REF_DATE)
     assert start == date(2026, 6, 20)
     assert end == date(2026, 6, 25)

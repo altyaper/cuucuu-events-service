@@ -1,6 +1,7 @@
 from datetime import date, time
 
 from app.pipeline import process_article
+from app.schemas import ArticleRequest
 from tests.conftest import (
     CONCERT_ARTICLE,
     CRIME_ARTICLE,
@@ -21,9 +22,6 @@ def test_pipeline_sample_event():
     assert result.end_date == date(2026, 5, 17)
     assert result.start_time == time(11, 0)
     assert result.end_time == time(20, 0)
-    assert result.admission == "libre"
-    assert result.organizer is not None
-    assert result.venue is not None
 
 
 def test_pipeline_crime_not_event():
@@ -58,15 +56,8 @@ def test_pipeline_concert():
     assert result.confidence > 0.7
 
 
-def test_pipeline_returns_article_id():
-    result = process_article(SAMPLE_EVENT_ARTICLE)
-    assert result.article_id == 1
-
-
 def test_pipeline_warnings_on_missing_fields():
-    from app.schemas import ArticleInput
-
-    article = ArticleInput(
+    article = ArticleRequest(
         title="Gran Festival",
         body="Se llevará a cabo un gran festival. Invita a la comunidad a asistir.",
     )

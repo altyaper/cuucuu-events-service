@@ -1,42 +1,31 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time
+from datetime import date, time
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 
-class ArticleInput(BaseModel):
-    id: int | None = None
-    article_id: int | None = None
-    title: str | None = ""
-    content: str | None = ""
-    published_at: datetime | None = None
-    source: str | None = None
-
-    @property
-    def resolved_id(self) -> int | None:
-        return self.article_id or self.id
+class ArticleRequest(BaseModel):
+    title: str = ""
+    body: str = ""
+    date: Optional[str] = None
 
 
-class EventDetectionResult(BaseModel):
-    article_id: int | None = None
+class EventResponse(BaseModel):
     is_event: bool
     confidence: float
-    event_name: str | None = None
-    description: str | None = None
-    city: str | None = None
-    venue: str | None = None
-    dates: list[date] = []
-    start_date: date | None = None
-    end_date: date | None = None
-    start_time: time | None = None
-    end_time: time | None = None
-    admission: str | None = None
-    organizer: str | None = None
-    event_type: str | None = None
-    evidence: str | None = None
-    warnings: list[str] = []
-
-
-class DetectBatchRequest(BaseModel):
-    articles: list[ArticleInput]
+    event_name: Optional[str] = None
+    description: Optional[str] = None
+    city: Optional[str] = None
+    venue: Optional[str] = None
+    dates: List[date] = []
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
+    admission: Optional[str] = None
+    organizer: Optional[str] = None
+    event_type: Optional[str] = None
+    evidence: Optional[str] = None
+    warnings: List[str] = []

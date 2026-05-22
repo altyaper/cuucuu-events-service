@@ -1,4 +1,4 @@
-from app.normalizer import normalize
+from app.cleaning import clean_text
 from app.rules import score_article
 from tests.conftest import (
     CONCERT_ARTICLE,
@@ -11,7 +11,7 @@ from tests.conftest import (
 
 
 def _score(article):
-    text = normalize(f"{article.title} {article.content}")
+    text = clean_text(f"{article.title} {article.body}")
     return score_article(text)
 
 
@@ -55,6 +55,6 @@ def test_concert_with_time():
 
 def test_empty_text():
     confidence, breakdown = _score(
-        type("A", (), {"title": "", "content": ""})()
+        type("A", (), {"title": "", "body": ""})()
     )
     assert confidence < 0.1

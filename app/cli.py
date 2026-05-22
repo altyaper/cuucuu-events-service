@@ -7,7 +7,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.models import Article, EventDetection
 from app.pipeline import process_article
-from app.schemas import ArticleInput
+from app.schemas import ArticleRequest
 
 
 @click.group()
@@ -27,15 +27,13 @@ def process_one(article_id: int):
             click.echo(f"Article {article_id} not found.")
             return
 
-        article_input = ArticleInput(
-            id=article.id,
+        request = ArticleRequest(
             title=article.title or "",
-            content=article.content or "",
-            published_at=article.published_at,
-            source=article.source,
+            body=article.content or "",
+            date=article.published_at.strftime("%Y-%m-%d") if article.published_at else None,
         )
-        result = process_article(article_input)
-        _save_detection(db, result)
+        result = process_article(request)
+        _save_detection(db, article.id, result)
         db.commit()
 
         click.echo(result.model_dump_json(indent=2))
@@ -65,15 +63,13 @@ def process_new(limit: int):
 
         events_found = 0
         for article in articles:
-            article_input = ArticleInput(
-                id=article.id,
+            request = ArticleRequest(
                 title=article.title or "",
-                content=article.content or "",
-                published_at=article.published_at,
-                source=article.source,
+                body=article.content or "",
+                date=article.published_at.strftime("%Y-%m-%d") if article.published_at else None,
             )
-            result = process_article(article_input)
-            _save_detection(db, result)
+            result = process_article(request)
+            _save_detection(db, article.id, result)
 
             if result.is_event:
                 events_found += 1
@@ -107,15 +103,13 @@ def reprocess(since: str, limit: int):
 
         events_found = 0
         for article in articles:
-            article_input = ArticleInput(
-                id=article.id,
+            request = ArticleRequest(
                 title=article.title or "",
-                content=article.content or "",
-                published_at=article.published_at,
-                source=article.source,
+                body=article.content or "",
+                date=article.published_at.strftime("%Y-%m-%d") if article.published_at else None,
             )
-            result = process_article(article_input)
-            _save_detection(db, result)
+            result = process_article(request)
+            _save_detection(db, article.id, result)
 
             if result.is_event:
                 events_found += 1
@@ -185,9 +179,9 @@ def label_review(limit: int, min_confidence: float, max_confidence: float):
         db.close()
 
 
-def _save_detection(db, result):
+def _save_detection(db, article_id, result):
     existing = db.scalars(
-        select(EventDetection).where(EventDetection.article_id == result.article_id)
+        select(EventDetection).where(EventDetection.article_id == article_id)
     ).first()
 
     data = {
@@ -211,7 +205,7 @@ def _save_detection(db, result):
         for key, value in data.items():
             setattr(existing, key, value)
     else:
-        detection = EventDetection(article_id=result.article_id, **data)
+        detection = EventDetection(article_id=article_id, **data)
         db.add(detection)
 
 
