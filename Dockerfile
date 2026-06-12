@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
 
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('AltYaper/beto-events', local_dir='models/beto-events')"
+COPY models/beto-events/ models/beto-events/
 
 EXPOSE 8001
 
